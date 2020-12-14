@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Vector.h>
 #include "GyverTimers.h"
+#include "Dump.h"
 
 //global storage variables
 uint32_t pingTimer;
@@ -29,11 +30,11 @@ void setup()
 
 ISR(TIMER2_A)
 {
-  if (millis() - pingTimer >= 2000)
-  {
-    pingTimer = millis();
-    Serial.println("ping " + String(millis()));
-  }
+  //if (millis() - pingTimer >= 2000)
+  //{
+  //  pingTimer = millis();
+  //  Serial.println("ping " + String(millis()));
+  //}
 }
 
 void blinkLed(int numberOfBlinks)
@@ -51,36 +52,40 @@ void blinkLed(int numberOfBlinks)
 //blink [number of blinks] - only for test purposes! Blink led on pin 13, made with delay, so unstable
 //rotate [to] - rotate to some point in decimal degrees
 //ping - returns pong to serial port
-//void analyzeString(String data)
-//{
-//  char firstOption = data[0][0];
-//  switch (firstOption)
-//  {
-//  case 'b':
-//  {
-//    blinkLed(data[1].toInt());
-//  }
-//  case 'p':
-//  {
-//    Serial.println("pong");
-//  }
-//
-//  break;
-//
-//  default:
-//    break;
-//  }
-//}
+void analyzeString(String data[])
+{
+  if (data[0] == "rotate")
+  {
+    Serial.println("rotate");
+  }
+  else if (data[0] == "ping")
+  {
+    Serial.println("pong");
+  }
+  else if (data[0] == "blink")
+  {
+    blinkLed(data[1].toInt());
+  }
+}
 
 void loop()
 {
   if (Serial.available())
   {
+    //recieveing string and parsing into strings array
     String recievedString = Serial.readStringUntil('\n');
-    char convertedString[recievedString.length()];
-    recievedString.toCharArray(convertedString, recievedString.length());
+    uint32_t recievedStringLength = recievedString.length();
+    char convertedString[recievedStringLength];
+    recievedString.toCharArray(convertedString, recievedStringLength);
     char *dividedString = strtok(convertedString, " ");
 
-    //analyzeString(recievedString);
+    String parsedString[recievedStringLength];
+    while (dividedString != NULL)
+    {
+      Serial.println(dividedString);
+      dividedString = strtok(NULL, " ");
+    }
+
+    analyzeString(parsedString);
   }
 }
