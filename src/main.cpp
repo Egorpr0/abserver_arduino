@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <Vector.h>
 
+#define FIRMWARE_VERSION "0.1.1"
+
 // steppers
 GStepper<STEPPER2WIRE> stepper1(200, 4, 5);
 GStepper<STEPPER2WIRE> stepper2(200, 5, 6);
@@ -61,6 +63,7 @@ void doAction(String data[]) {
     Serial.println("rotate");
   } else if (data[0] == "ping") {
     Serial.println("pong");
+    Serial.println("version: " + String(FIRMWARE_VERSION));
   } else if (data[0] == "blink") {
     blinkLed(data[1].toInt());
   }
