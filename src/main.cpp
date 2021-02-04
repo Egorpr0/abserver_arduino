@@ -25,10 +25,7 @@ int availableMemory() {
 };
 
 void setup() {
-  stepper1.setRunMode(KEEP_SPEED);
-  stepper1.setSpeed(3200);
-  stepper1.setMaxSpeed(3200);
-  stepper1.setAcceleration(500);
+  // testSteppers(); //TODO
   // timers setup
   // timer for outputting to serial and status reporting
   // Timer2.setPeriod(16384);
@@ -59,8 +56,8 @@ void blinkLed(int numberOfBlinks) {
 // rotate [to] - rotate to some point in decimal degrees
 // ping - returns pong to serial port
 void doAction(String data[]) {
-  if (data[0] == "rotate") {
-    Serial.println("rotate");
+  if (data[0] == "moteTo") {
+    Serial.println("moveTo");
   } else if (data[0] == "ping") {
     Serial.println("pong");
     Serial.println("version: " + String(FIRMWARE_VERSION));
@@ -74,9 +71,9 @@ void loop() {
 
     // recieveing string and parsing into strings array
     String recievedString = Serial.readStringUntil('\n');
-    uint32_t recievedStringLength = recievedString.length();
+    uint16_t recievedStringLength = recievedString.length();
     char convertedString[recievedStringLength];
-    recievedString.toCharArray(convertedString, recievedStringLength);
+    recievedString.toCharArray(convertedString, recievedStringLength + 1);
     char *dividedString = strtok(convertedString, " ");
 
     String parsedString[recievedStringLength];
@@ -88,4 +85,5 @@ void loop() {
     doAction(parsedString);
   }
   stepper1.tick();
+  stepper2.tick();
 }
