@@ -3,16 +3,16 @@
 #include "GyverTimers.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <Vector.h>
 
-#define FIRMWARE_VERSION "0.1.1"
+//#define ARDUINOJSON_DECODE_UNICODE 0 TODO - fix
+#define FIRMWARE_VERSION "0.1.2"
 
 // global varibles
 uint16_t statusReportFrequency = 1; // in Hz
 
 // steppers
-GStepper<STEPPER2WIRE> stepper1(200 * 8 * 2 * 64.77, 4, 5);
-GStepper<STEPPER2WIRE> stepper2(200, 5, 6);
+GStepper<STEPPER2WIRE> stepperHa(200 * 8 * 2 * 64.77, 4, 5);
+GStepper<STEPPER2WIRE> stepperDec(200 * 8 * 2 * 64.77, 5, 6);
 
 // global storage variables
 uint32_t pingTimer;
@@ -29,10 +29,13 @@ int availableMemory() {
 };
 
 ISR(TIMER1_A) {
-  DynamicJsonDocument data(10);
-  data["st1Deg"] = stepper1.getCurrentDeg();
-  data["st2Deg"] = stepper2.getCurrentDeg();
-  serializeJson(data, Serial);
+  DynamicJsonDocument data(128);
+  data["type"] = "status";
+  data["stHaDeg"] = stepperHa.getCurrentDeg();
+  data["stDecDeg"] = stepperDec.getCurrentDeg();
+  String serializedJson;
+  serializeJson(data, serializedJson);
+  Serial.println(serializedJson);
 }
 
 void setup() {
@@ -42,8 +45,13 @@ void setup() {
   Timer1.setFrequency(statusReportFrequency);
   Timer1.enableISR();
 
-  stepper1.setRunMode(KEEP_SPEED);
-  stepper1.setSpeedDeg(1);
+  stepperHa.setRunMode(KEEP_SPEED);
+  stepperDec.setRunMode(KEEP_SPEED);
+  stepperHa.setMaxSpeedDeg(5);
+  stepperDec.setMaxSpeedDeg(5);
+  // TODO enable stepper testing.
+  // stepperHa.setSpeedDeg(1);
+  // stepperDec.setSpeedDeg(1);
   pinMode(13, OUTPUT);
 }
 
@@ -57,47 +65,57 @@ void blinkLed(int numberOfBlinks) {
   }
 }
 
-// blink [number of blinks] - only for test purposes! Blink led on pin 13, made with delay, so unstable
 // rotate [to] - rotate to some point in decimal degrees
 // ping - returns pong to serial port
-void doAction(String data[]) {
-  if (data[0] == "moteTo") {
-    Serial.println("moveTo");
+void doAction(DynamicJsonDocument action) {
+  auto actionType = action["n"];
+  for (size_t i = 0; i < actionType.size(); i++) {
+    actionType[i] = tolower(actionType[i]);
+  }
 
-  } else if (data[0] == "stop") {
-    stepper1.setSpeed(0);
-    stepper2.setSpeed(0);
+  if (actionType == "moveto") {
+    float ha = action["p"]["ha"];
+    float dec = action["p"]["dec"];
 
-  } else if (data[0] == "ping") {
-    Serial.println("pong");
-    Serial.println("version: " + String(FIRMWARE_VERSION));
+    stepperHa.setRunMode(FOLLOW_POS);
+    stepperDec.setRunMode(FOLLOW_POS);
 
-  } else if (data[0] == "blink") {
-    blinkLed(data[1].toInt());
+    stepperHa.setTargetDeg(ha);
+    stepperDec.setTargetDeg(dec);
+
+  } else if (actionType == "stop") {
+    stepperHa.setSpeed(0);
+    stepperDec.setSpeed(0);
+    Serial.println("stopped");
+
+  } else if (actionType == "track") {
+    stepperHa.setRunMode(KEEP_SPEED);
+    stepperHa.setSpeedDeg(degPerHour(15));
+
+  } else if (actionType == "ping") {
+    StaticJsonDocument<64> pingResponse;
+    pingResponse["type"] = "pong";
+    pingResponse["version"] = String(FIRMWARE_VERSION);
+    String pingResponseSerialized;
+    serializeJson(pingResponse, pingResponseSerialized);
+    Serial.println(pingResponseSerialized);
+
+  } else if (actionType == "test") {
+    stepperHa.setRunMode(KEEP_SPEED);
+    stepperDec.setRunMode(KEEP_SPEED);
+    stepperHa.setSpeedDeg(1);
+    stepperDec.setSpeedDeg(1);
   }
 }
 
 void loop() {
-  if (Serial.available()) {
-
-    // recieveing string and parsing into strings array
+  if (Serial.available()) { // TODO change reading method
     String recievedString = Serial.readStringUntil('\n');
-    uint16_t recievedStringLength = recievedString.length();
-    char convertedString[recievedStringLength];
-    recievedString.toCharArray(convertedString, recievedStringLength + 1);
-    char *dividedString = strtok(convertedString, " ");
-
-    String parsedString[recievedStringLength];
-    uint8_t index = 0;
-    while (dividedString != NULL) {
-      Serial.println(dividedString);
-      parsedString[index] = dividedString;
-      index++;
-      dividedString = strtok(NULL, " ");
-    }
-    doAction(parsedString);
+    StaticJsonDocument<128> recievedJson;
+    deserializeJson(recievedJson, recievedString);
+    doAction(recievedJson);
   }
-  stepper1.tick();
-  stepper2.tick();
+  stepperHa.tick();
+  stepperDec.tick();
   // Serial.println(stepper1.getCurrentDeg());
 }
