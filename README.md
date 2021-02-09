@@ -34,18 +34,30 @@ Developement stages:
 
 | Command | Description | Impl. status | Params |
 | ----------- | ----------- | ----------- | ----------- |
-| `ping` | returns `pong` and firmware version | :full_moon: | None |
-| `moveto` | Aims telescope at given cordinates | :new_moon: | ->[:milky_way:](#moveto)<-|
-| `track` | Starts compensating for earth rotation at set position | :new_moon: | ->[:milky_way:](#track)<-|
+| `ping` | Returns `pong` and firmware version | :full_moon: | None |
+| `moveto` | Aims telescope at given cordinates | :last_quarter_moon: | ->[:milky_way:](#moveto)<-|
+| `track` | Starts compensating for earth rotation at set position | :last_quarter_moon: | ->[:milky_way:](#track)<-|
+|`stop`| Stops all steppers | :full_moon: | None |
 
 <HA> <Dec>
+
+### Ping
+ - Returns arduino firmware version to check the compitability of **API**s
+ 
+Response:
+```
+{"type": "pong", "vesrion": *firmware version*}
+```
+### Test  - **will be removed in future updates!**
+ - Sets stepper speeds to 1 dec/sec
 
 ### MoveTo
 Params:
   - `"ha"`  - Hour Angle of an object
   - `"dec"` - Declination of an nedeed object
 
-### track
+### Track
 Params:
  - `"t"` - Time to automatically stop tracking
+  
 ## Other features coming soon...
