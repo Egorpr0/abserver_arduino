@@ -11,8 +11,8 @@
 uint16_t statusReportFrequency = 1; // in Hz
 
 // steppers
-GStepper<STEPPER2WIRE> stepperHa(200 * 8 * 2 * 64.77, 4, 5);
-GStepper<STEPPER2WIRE> stepperDec(200 * 8 * 2 * 64.77, 5, 6);
+GStepper<STEPPER2WIRE> stepperHa(200 * 8 * 2 * 64.77, 3, 2, 5);
+GStepper<STEPPER2WIRE> stepperDec(200 * 8 * 2 * 64.77, 7, 6, 12);
 
 // global storage variables
 uint32_t pingTimer;
@@ -40,6 +40,13 @@ ISR(TIMER1_A) {
 
 void setup() {
   Serial.begin(115200);
+  Serial.println();
+  StaticJsonDocument<20> initMessage;
+  initMessage["type"] = "initialize";
+  String initMessageString;
+  serializeJson(initMessage, initMessageString);
+  Serial.println(initMessageString);
+
   // timers setup
   // timer1 is for status reporting
   Timer1.setFrequency(statusReportFrequency);
@@ -50,8 +57,8 @@ void setup() {
   stepperHa.setMaxSpeedDeg(5);
   stepperDec.setMaxSpeedDeg(5);
   // TODO enable stepper testing.
-  // stepperHa.setSpeedDeg(1);
-  // stepperDec.setSpeedDeg(1);
+  // stepperHa.setSpeedDeg(degPerMinute(-10));
+  // stepperDec.setSpeedDeg(degPerMinute(-10));
   pinMode(13, OUTPUT);
 }
 
@@ -86,7 +93,6 @@ void doAction(DynamicJsonDocument action) {
   } else if (actionType == "stop") {
     stepperHa.setSpeed(0);
     stepperDec.setSpeed(0);
-    Serial.println("stopped");
 
   } else if (actionType == "track") {
     stepperHa.setRunMode(KEEP_SPEED);
