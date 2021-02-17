@@ -3,7 +3,7 @@
 Arduino code made to work with [smart_telescope_rpi](https://github.com/Egorpr0/smart_telescope_rpi) project
 
 ## Hardware
-Original project board is **Arduino nano** (Atmega328P)
+Original project board - **Arduino nano** (Atmega328P)
 
 Drivers - **DRV8825**/**A4988**
 
