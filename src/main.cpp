@@ -5,13 +5,13 @@
 #include <ArduinoJson.h>
 
 //#define ARDUINOJSON_DECODE_UNICODE 0 TODO - fix
-#define FIRMWARE_VERSION "0.1.2"
+#define FIRMWARE_VERSION "0.1.3"
 
 // global varibles
 float statusReportFrequency = 0.25; // in Hz
 
 // steppers
-GStepper<STEPPER2WIRE> stepperHa(200 * 8 * 2 * 64.77, 3, 2, 5);
+GStepper<STEPPER2WIRE> stepperHa(200 * 8 * 2 * 64.77 * 2, 3, 2, 5);
 GStepper<STEPPER2WIRE> stepperDec(200 * 8 * 2 * 64.77, 7, 6, 12);
 
 // print/return avalile memory
@@ -46,8 +46,13 @@ void setup() {
 
   stepperHa.setRunMode(KEEP_SPEED);
   stepperDec.setRunMode(KEEP_SPEED);
+
   stepperHa.setMaxSpeedDeg(2);
-  stepperDec.setMaxSpeedDeg(2);
+  stepperDec.setMaxSpeedDeg(4);
+
+  stepperHa.setAccelerationDeg(1.5);
+  stepperDec.setAccelerationDeg(2);
+
   stepperHa.disable();
   stepperDec.disable();
   // TODO enable stepper testing.
@@ -116,12 +121,6 @@ void doAction(DynamicJsonDocument action) {
     String pingResponseSerialized;
     serializeJson(pingResponse, pingResponseSerialized);
     Serial.println(pingResponseSerialized);
-
-  } else if (actionType == "test") {
-    stepperHa.setRunMode(KEEP_SPEED);
-    stepperDec.setRunMode(KEEP_SPEED);
-    stepperHa.setSpeedDeg(1);
-    stepperDec.setSpeedDeg(1);
   }
 }
 
