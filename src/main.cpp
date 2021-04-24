@@ -8,7 +8,7 @@
 #define FIRMWARE_VERSION "0.1.3"
 
 // global varibles
-float statusReportFrequency = 0.25; // in Hz
+float defaultStatusReportFrequency = 0.25; // in Hz
 
 // steppers
 GStepper<STEPPER2WIRE> stepperHa(200 * 8 * 2 * 64.77 * 2, 3, 2, 5);
@@ -61,7 +61,7 @@ void setup() {
 
   // timers setup
   // timer1 is for status reporting
-  Timer1.setFrequencyFloat(statusReportFrequency);
+  Timer1.setFrequencyFloat(defaultStatusReportFrequency);
   Timer1.enableISR();
 
   pinMode(13, OUTPUT);
@@ -114,6 +114,10 @@ void doAction(DynamicJsonDocument action) {
       stepperDec.setRunMode(FOLLOW_POS);
       stepperDec.setTargetDeg(action["p"]["decDiff"], RELATIVE);
     }
+  } else if (actionType == "config") {
+    if (action["p"]["reportFrequency"])
+      Timer1.setFrequencyFloat(float(action["p"]["reportFrequency"]));
+
   } else if (actionType == "ping") {
     StaticJsonDocument<64> pingResponse;
     pingResponse["type"] = "pong";
