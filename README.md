@@ -1,6 +1,6 @@
-# SMART_TELESCOPE_ARDUINO
+# Abserver_arduino
 
-Arduino code made to work with [smart_telescope_rpi](https://github.com/Egorpr0/smart_telescope_rpi) project
+Arduino code made to work with [abserver_rpi](https://github.com/egor-khanko/abserver_rpi) project
 
 ## Hardware
 Original project board - **Arduino nano** (Atmega328P)
